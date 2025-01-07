@@ -1,39 +1,48 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# MVVM Utils
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
+⚠️ This package is under development.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
+A collection of convenience methods and utilities to facilitate [Flutter official Architecture recommandation](https://docs.flutter.dev/app-architecture/guide)
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+**Result**
 
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
-
+basic usage:
 ```dart
-const like = 'sample';
+Result<String> myFunction() {
+    try {
+        ...
+        return Success("ok");
+    } catch (e) {
+        return Failure(e);
+    }
+}
+
+final res = myFunction();
+res.fold(
+    success: (v) {},
+    failure: (e) {}
+);
 ```
 
-## Additional information
+Result is a sealed class, so you can uses pattern matching
+```dart
+final v = switch(result) {
+    Success(:final value) => ...,
+    Failure(:final error) => ...,
+}
+```
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+This package also export a `FutureResult<T>`, which is simply a typedef for `Future<Result<T>>`;
+
+
+**Command**
+// TODO
+
+**ViewModel**
+// TODO
+
+**Inject**
+// TODO
+
+**CommandBuilder**
+// TODO
