@@ -1,7 +1,5 @@
 import 'package:flutter/widgets.dart';
-
-import 'command.dart';
-import 'result.dart';
+import 'package:mvvm_utils/mvvm_utils.dart';
 
 abstract class CommandBuilder<T> extends StatelessWidget {
   const factory CommandBuilder.result({

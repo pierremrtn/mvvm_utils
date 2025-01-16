@@ -22,6 +22,11 @@ base class ViewModel extends ChangeNotifier {
     super.dispose();
   }
 
+  void listenTo(Listenable listenable, VoidCallback callback) {
+    listenable.addListener(callback);
+    _cleanup.add(() => listenable.removeListener(callback));
+  }
+
   StreamValue<T> streamValue<T>(
     Stream<T> stream, {
     bool listenImmediately = true,
@@ -34,8 +39,15 @@ base class ViewModel extends ChangeNotifier {
   Command0<T> command<T>(
     CommandAction0<T> action, {
     CommandRestrictionController? restrictionController,
+    CommandSuccessCallback<T>? onSuccess,
+    CommandFailureCallback? onFailure,
   }) {
-    final c = Command0(action);
+    final c = Command0(
+      action,
+      restrictionController: restrictionController,
+      onFailure: onFailure,
+      onSuccess: onSuccess,
+    );
     _cleanup.add(c.dispose);
     return c;
   }
@@ -43,8 +55,15 @@ base class ViewModel extends ChangeNotifier {
   Command1<P, R> command1<P, R>(
     CommandAction1<P, R> action, {
     CommandRestrictionController? restrictionController,
+    CommandSuccessCallback<R>? onSuccess,
+    CommandFailureCallback? onFailure,
   }) {
-    final c = Command1(action);
+    final c = Command1(
+      action,
+      restrictionController: restrictionController,
+      onSuccess: onSuccess,
+      onFailure: onFailure,
+    );
     _cleanup.add(c.dispose);
     return c;
   }

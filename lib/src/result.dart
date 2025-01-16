@@ -3,10 +3,6 @@ typedef FutureResult<T> = Future<Result<T>>;
 sealed class Result<T> {
   const Result();
 
-  T? get value;
-
-  Object? get error;
-
   bool get isSuccess => this is Success;
   bool get isFailure => this is Failure;
 
@@ -26,29 +22,27 @@ sealed class Result<T> {
   // Failure<T> get asFailure => this as Failure<T>;
 }
 
+extension ResultValue<R> on Result<R> {
+  Object? get error => switch (this) {
+        Failure(:final error) => error,
+        _ => null,
+      };
+  R? get value => switch (this) {
+        Success(:final value) => value,
+        _ => null,
+      };
+}
+
 class Success<T> extends Result<T> {
   const Success(this.value);
 
-  @override
   final T value;
-
-  @override
-  get error => null;
 }
 
 class Failure<T> extends Result<T> {
   const Failure(this.error);
 
-  @override
   final Object error;
 
-  @override
-  get value => null;
-
   Failure<U> propagate<U>() => Failure(error);
-}
-
-extension ObjectToResult<T extends Object> on T {
-  Success<T> get toSuccess => Success(this);
-  Failure<T> get toFailure => Failure(this);
 }
