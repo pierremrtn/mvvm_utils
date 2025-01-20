@@ -38,6 +38,7 @@ class StreamValue<T> extends ValueNotifier<Result<T>?> {
   @override
   void dispose() {
     _sub?.cancel();
+    _sub = null;
     super.dispose();
   }
 }
