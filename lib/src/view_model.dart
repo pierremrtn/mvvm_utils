@@ -17,7 +17,11 @@ base class ViewModel extends ChangeNotifier {
   @mustCallSuper
   void dispose() {
     for (final cb in _cleanup) {
-      cb();
+      try {
+        cb();
+      } catch (e) {
+        continue;
+      }
     }
     super.dispose();
   }
