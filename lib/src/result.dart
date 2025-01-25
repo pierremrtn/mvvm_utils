@@ -6,7 +6,7 @@ sealed class Result<T> {
   bool get isSuccess => this is Success;
   bool get isFailure => this is Failure;
 
-  U fold<U>({
+  U when<U>({
     required U Function(T success) success,
     required U Function(Object error) failure,
   }) =>
@@ -15,11 +15,20 @@ sealed class Result<T> {
         Failure(:final error) => failure(error),
       };
 
-  // /// Unsafe operation
-  // Success<T> get asSuccess => this as Success<T>;
+  U? whenOrNull<U>({
+    required U Function(T success)? success,
+    required U Function(Object error)? failure,
+  }) =>
+      switch (this) {
+        Success(:final value) => success?.call(value),
+        Failure(:final error) => failure?.call(error),
+      };
 
-  // /// Unsafe operation
-  // Failure<T> get asFailure => this as Failure<T>;
+  /// Return Result as [Success] or throw if result is a [Failure]
+  Success<T> get asSuccess => this as Success<T>;
+
+  /// Return Result as [Failure] or throw if result is a [Success]
+  Failure<T> get asFailure => this as Failure<T>;
 }
 
 extension ResultValue<R> on Result<R> {
@@ -44,5 +53,7 @@ class Failure<T> extends Result<T> {
 
   final Object error;
 
+  /// Convert a failure from a Result of type T into a Result of type U
+  /// Useful to return failure form inner failure with different result type
   Failure<U> propagate<U>() => Failure(error);
 }

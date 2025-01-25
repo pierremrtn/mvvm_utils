@@ -5,19 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mvvm_utils/mvvm_utils.dart';
 
-import 'result.dart';
+export 'command_state.dart';
 
-typedef CommandAction0<R> = FutureOr<Result<R>> Function();
-typedef CommandAction1<P, R> = FutureOr<Result<R>> Function(P);
+typedef CommandAction0<R> = FutureOr<R> Function();
+typedef CommandAction1<P, R> = FutureOr<R> Function(P);
 typedef CommandSuccessCallback<R> = void Function(R value);
 typedef CommandFailureCallback = void Function(Object error);
-
-enum CommandStatus {
-  initial,
-  running,
-  success,
-  failure,
-}
 
 abstract class CommandRestrictionController extends Listenable {
   const CommandRestrictionController();
@@ -37,7 +30,7 @@ class DependsOnCommands
   final List<Command> _commands;
 
   @override
-  bool get enabled => _commands.none((c) => c.succeeded == false);
+  bool get enabled => _commands.none((c) => c.state.isSucceeded == false);
 }
 
 class CommandRestrictionSelector<T extends Listenable>
@@ -71,30 +64,11 @@ class Command<R> with ChangeNotifier {
   final CommandFailureCallback? onFailure;
   final CommandRestrictionController? _restrictionController;
 
-  Result<R>? _result;
-  CommandStatus _status = CommandStatus.initial;
-
-  /// Returns the status of the command
-  /// Command are in status [initial] until execute has been called
-  /// at least once
-  CommandStatus get status => _status;
+  CommandState<R> _state = CommandState.initial();
+  CommandState<R> get state => _state;
 
   bool get enabled => _restrictionController?.enabled ?? true;
   bool get disabled => !enabled;
-  bool get initial => status == CommandStatus.initial;
-  bool get running => status == CommandStatus.running;
-  bool get failed => status == CommandStatus.failure;
-  bool get succeeded => status == CommandStatus.success;
-  bool get completed => failed || succeeded;
-
-  Object? get error => switch (result) {
-        Failure(:final error) => error,
-        _ => null,
-      };
-  R? get value => switch (result) {
-        Success(:final value) => value,
-        _ => null,
-      };
 
   /// Return the result of the last execute call
   /// Calling execute **does not** reset result value while the command is running
@@ -102,35 +76,34 @@ class Command<R> with ChangeNotifier {
   /// a new result is available.
   ///
   /// If you need the status of the currently running action, uses [status] instead
-  Result<R>? get result => _result;
+  FutureOr<Result<R>?> _execute(
+    FutureOr<R> Function() action, {
+    CommandSuccessCallback<R>? onSuccess,
+    CommandFailureCallback? onError,
+  }) async {
+    if (state.isRunning || _restrictionController?.enabled == false) {
+      return null;
+    }
 
-  FutureOr<Result<R>?> _execute(FutureOr<Result<R>> Function() action) async {
-    if (running || _restrictionController?.enabled == false) return null;
-
-    _status = CommandStatus.running;
-    _result = null;
+    _state = CommandState.running();
     notifyListeners();
 
+    late final Result<R> executionResult;
     try {
-      _result = await action();
-      _status = switch (_result as Result<R>) {
-        Success() => CommandStatus.success,
-        Failure() => CommandStatus.failure,
-      };
+      final res = await action();
+      _state = CommandState.success(res);
+      executionResult = Success(res);
     } catch (e) {
-      _status = CommandStatus.failure;
-      _result = Failure(e);
+      _state = CommandState.failure(e);
+      executionResult = Failure(e);
     } finally {
-      switch (_result) {
-        case Success(:final value):
-          onSuccess?.call(value);
-        case Failure(:final error):
-          onFailure?.call(error);
-        default:
-      }
+      state.whenOrNull(
+        success: onSuccess,
+        failure: onFailure,
+      );
       notifyListeners();
     }
-    return _result;
+    return executionResult;
   }
 
   @override
@@ -156,7 +129,7 @@ class Command0<T> extends Command<T> {
     required bool nullWhenDisabled,
     required bool nullWhenRunning,
   }) =>
-      (nullWhenDisabled && disabled) || (nullWhenRunning && running)
+      (nullWhenDisabled && disabled) || (nullWhenRunning && state.isRunning)
           ? null
           : this.execute;
 

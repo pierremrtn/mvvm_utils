@@ -10,13 +10,15 @@ class CommandListener<R> extends StatefulWidget {
     this.onFailure,
     this.onChanged,
     this.onRunning,
+    this.onEnabledChanged,
   });
 
   final Command<R> command;
   final void Function()? onChanged;
-  final CommandSuccessCallback? onSuccess;
-  final CommandFailureCallback? onFailure;
   final VoidCallback? onRunning;
+  final CommandSuccessCallback<R>? onSuccess;
+  final CommandFailureCallback? onFailure;
+  final ValueChanged<bool>? onEnabledChanged;
   final Widget child;
 
   @override
@@ -24,38 +26,41 @@ class CommandListener<R> extends StatefulWidget {
 }
 
 class _CommandListenerState<R> extends State<CommandListener<R>> {
+  late bool commandEnabled;
+
   @override
   void initState() {
     super.initState();
-    widget.command.addListener(_handleCommandChanges);
+    commandEnabled = widget.command.enabled;
+    widget.command.addListener(_handleCommandStateChanges);
   }
 
   @override
   void didUpdateWidget(old) {
     super.didUpdateWidget(old);
     if (old.command != widget.command) {
-      old.command.removeListener(_handleCommandChanges);
-      widget.command.addListener(_handleCommandChanges);
+      commandEnabled = widget.command.enabled;
+      widget.command.addListener(_handleCommandStateChanges);
     }
   }
 
   @override
   void dispose() {
-    widget.command.removeListener(_handleCommandChanges);
+    widget.command.removeListener(_handleCommandStateChanges);
     super.dispose();
   }
 
-  void _handleCommandChanges() {
+  void _handleCommandStateChanges() {
     widget.onChanged?.call();
-    switch (widget.command.result) {
-      case null:
-        widget.onRunning?.call();
-      case Success(:final value):
-        widget.onSuccess?.call(value);
-      case Failure(:final Object error):
-        widget.onFailure?.call(error);
-      default:
+    if (commandEnabled != widget.command.enabled) {
+      widget.onEnabledChanged?.call(widget.command.enabled);
+      commandEnabled = widget.command.enabled;
     }
+    widget.command.state.whenOrNull(
+      running: widget.onRunning,
+      success: widget.onSuccess,
+      failure: widget.onFailure,
+    );
   }
 
   @override

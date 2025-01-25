@@ -3,8 +3,7 @@
 /// More dartdocs go here.
 library;
 
-export 'src/stream_value.dart';
-export 'src/command.dart';
+export 'src/command/command.dart';
 export 'src/result.dart';
 export 'src/view_model.dart';
 export 'src/view_model_widget.dart';

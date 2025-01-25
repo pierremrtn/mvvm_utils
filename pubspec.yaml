@@ -1,6 +1,6 @@
 name: mvvm_utils
-description: A collection of utils to support Flutter's official MVVM architecture 
-version: 0.1.0
+description: A collection of utils to support Flutter's recommended MVVM architecture 
+version: 0.2.0
 repository: https://github.com/pierremrtn/mvvm_utils
 
 environment:
@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  collection: ^1.18.0
 
 dev_dependencies:
   lints: ^4.0.0

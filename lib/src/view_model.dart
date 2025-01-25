@@ -1,7 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
-import 'command.dart';
-import 'stream_value.dart';
+import 'command/command.dart';
 
 base class ViewModel extends ChangeNotifier {
   ViewModel() {
@@ -26,20 +27,23 @@ base class ViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  void listenTo(Listenable listenable, VoidCallback callback) {
-    listenable.addListener(callback);
-    _cleanup.add(() => listenable.removeListener(callback));
+  /// Register [dispose] to be call when this [ViewModel] is disposed
+  void addDisposer(VoidCallback dispose) {
+    _cleanup.add(dispose);
   }
 
-  StreamValue<T> streamValue<T>(
-    Stream<T> stream, {
-    bool listenImmediately = true,
-  }) {
-    final sv = StreamValue(stream, listenImmediately: listenImmediately);
-    _cleanup.add(sv.dispose);
-    return sv;
+  /// Add [listener] to [listenable] and remove it when this [ViewModel] is disposed
+  void autoDisposeListener(Listenable listenable, VoidCallback listener) {
+    listenable.addListener(listener);
+    addDisposer(() => listenable.removeListener(listener));
   }
 
+  /// Add a disposer that cancel [subscription] when this [ViewModel] is disposed
+  void autoDisposeStreamSubscription(StreamSubscription sub) {
+    addDisposer(() => sub.cancel());
+  }
+
+  /// Create a command0 and register it for automatic disposal
   Command0<T> command<T>(
     CommandAction0<T> action, {
     CommandRestrictionController? restrictionController,
@@ -52,10 +56,11 @@ base class ViewModel extends ChangeNotifier {
       onFailure: onFailure,
       onSuccess: onSuccess,
     );
-    _cleanup.add(c.dispose);
+    addDisposer(c.dispose);
     return c;
   }
 
+  /// Create a command1 and register it for automatic disposal
   Command1<P, R> command1<P, R>(
     CommandAction1<P, R> action, {
     CommandRestrictionController? restrictionController,
@@ -68,7 +73,7 @@ base class ViewModel extends ChangeNotifier {
       onSuccess: onSuccess,
       onFailure: onFailure,
     );
-    _cleanup.add(c.dispose);
+    addDisposer(c.dispose);
     return c;
   }
 }
