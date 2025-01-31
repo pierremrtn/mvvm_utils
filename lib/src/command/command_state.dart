@@ -1,34 +1,47 @@
-sealed class CommandState<T> {
+abstract interface class CommandStateAccessor<T> {
+  CommandState<T> get _state;
+}
+
+sealed class CommandState<T> implements CommandStateAccessor<T> {
+  const CommandState._();
+
+  @override
+  CommandState<T> get _state => this;
+
   factory CommandState.initial() = _Initial.new;
   factory CommandState.running() = _Running.new;
   factory CommandState.success(T result) = _Succeeded.new;
   factory CommandState.failure(Object error) = _Failed.new;
 }
 
-class _Initial<T> implements CommandState<T> {}
+class _Initial<T> extends CommandState<T> {
+  const _Initial() : super._();
+}
 
-class _Running<T> implements CommandState<T> {}
+class _Running<T> extends CommandState<T> {
+  const _Running() : super._();
+}
 
-class _Succeeded<T> implements CommandState<T> {
+class _Succeeded<T> extends CommandState<T> {
+  const _Succeeded(this.result) : super._();
+
   final T result;
-
-  const _Succeeded(this.result);
 }
 
-class _Failed<T> implements CommandState<T> {
+class _Failed<T> extends CommandState<T> {
+  const _Failed(this.error) : super._();
+
   final Object error;
-
-  const _Failed(this.error);
 }
 
-extension CommandMethods<T> on CommandState<T> {
+extension CommandUtils<T> on CommandStateAccessor<T> {
   U when<U>({
     required U Function() initial,
     required U Function() running,
     required U Function(T result) success,
     required U Function(Object error) failure,
   }) =>
-      switch (this) {
+      switch (_state) {
         _Initial() => initial(),
         _Running() => running(),
         _Succeeded(:final result) => success(result),
@@ -41,7 +54,7 @@ extension CommandMethods<T> on CommandState<T> {
     U Function(T result)? success,
     U Function(Object error)? failure,
   }) =>
-      switch (this) {
+      switch (_state) {
         _Initial() => initial?.call(),
         _Running() => running?.call(),
         _Succeeded(:final result) => success?.call(result),
