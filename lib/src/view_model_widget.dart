@@ -31,6 +31,12 @@ class _InjectState<T extends ViewModel> extends State<Inject<T>> {
   }
 
   @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return widget.builder(context, _viewModel);
   }

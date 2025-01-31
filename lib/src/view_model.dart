@@ -4,29 +4,8 @@ import 'package:flutter/foundation.dart';
 
 import 'command/command.dart';
 
-base class ViewModel extends ChangeNotifier {
-  ViewModel() {
-    init();
-  }
-
-  final List<Function()> _cleanup = [];
-
-  @mustCallSuper
-  void init() {}
-
-  @override
-  @mustCallSuper
-  void dispose() {
-    for (final cb in _cleanup) {
-      try {
-        cb();
-      } catch (e) {
-        continue;
-      }
-    }
-    super.dispose();
-  }
-
+/// You must call disposeViewModel when the ViewModel is disposed to activate automatic cleanup
+mixin ViewModelBase {
   /// Register [dispose] to be call when this [ViewModel] is disposed
   void addDisposer(VoidCallback dispose) {
     _cleanup.add(dispose);
@@ -75,5 +54,34 @@ base class ViewModel extends ChangeNotifier {
     );
     addDisposer(c.dispose);
     return c;
+  }
+
+  final List<Function()> _cleanup = [];
+
+  @mustCallSuper
+  void disposeViewModel() {
+    for (final cb in _cleanup) {
+      try {
+        cb();
+      } catch (e) {
+        continue;
+      }
+    }
+  }
+}
+
+base class ViewModel extends ChangeNotifier with ViewModelBase {
+  ViewModel() {
+    init();
+  }
+
+  @mustCallSuper
+  void init() {}
+
+  @override
+  @mustCallSuper
+  void dispose() {
+    disposeViewModel();
+    super.dispose();
   }
 }
