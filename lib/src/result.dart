@@ -16,12 +16,22 @@ sealed class Result<T> {
       };
 
   U? whenOrNull<U>({
-    required U Function(T success)? success,
-    required U Function(Object error)? failure,
+    U Function(T success)? success,
+    U Function(Object error)? failure,
   }) =>
       switch (this) {
         Success(:final value) => success?.call(value),
         Failure(:final error) => failure?.call(error),
+      };
+
+  U? whenSuccess<U>(U Function(T success) success) => switch (this) {
+        Success(:final value) => success(value),
+        _ => null,
+      };
+
+  U? whenFailure<U>(U Function(Object failure) failure) => switch (this) {
+        Failure(:final error) => failure(error),
+        _ => null,
       };
 
   /// Return Result as [Success] or throw if result is a [Failure]
