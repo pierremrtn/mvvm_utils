@@ -1,3 +1,4 @@
+/// A shared interface to allows using same utils implementation for both CommandState and Command
 abstract interface class CommandStateAccessor<T> {
   CommandState<T> get _state;
 }
@@ -61,18 +62,18 @@ extension CommandUtils<T> on CommandStateAccessor<T> {
         _Failed(:final error) => failure?.call(error),
       };
 
-  bool get isInitial => this is _Initial;
-  bool get isRunning => this is _Running;
-  bool get isFailed => this is _Failed;
-  bool get isSucceeded => this is _Succeeded;
+  bool get isInitial => _state is _Initial;
+  bool get isRunning => _state is _Running;
+  bool get isFailed => _state is _Failed;
+  bool get isSucceeded => _state is _Succeeded;
   bool get isCompleted => isFailed || isSucceeded;
 
-  Object? get errorOrNull => switch (this) {
+  Object? get errorOrNull => switch (_state) {
         _Failed(:final error) => error,
         _ => null,
       };
 
-  T? get resultOrNull => switch (this) {
+  T? get resultOrNull => switch (_state) {
         _Succeeded(:final result) => result,
         _ => null,
       };
