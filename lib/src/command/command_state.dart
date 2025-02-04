@@ -1,3 +1,5 @@
+part of "command.dart";
+
 /// A shared interface to allows using same utils implementation for both CommandState and Command
 abstract interface class CommandStateAccessor<T> {
   CommandState<T> get _state;

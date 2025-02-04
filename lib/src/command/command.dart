@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mvvm_utils/mvvm_utils.dart';
 
-export 'command_state.dart';
+part 'command_state.dart';
 
 typedef CommandAction0<R> = FutureOr<Result<R>> Function();
 typedef CommandAction1<P, R> = FutureOr<Result<R>> Function(P);
@@ -64,6 +64,7 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
   final CommandFailureCallback? onFailure;
   final CommandRestrictionController? _restrictionController;
 
+  @override
   CommandState<R> _state = CommandState.initial();
   CommandState<R> get state => _state;
 
