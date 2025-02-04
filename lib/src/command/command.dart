@@ -139,8 +139,8 @@ class Command0<R> extends Command<R> {
   final CommandAction0<R> _action;
 
   FutureOr<Result<R>?> Function()? asNullableCallback({
-    required bool nullWhenDisabled,
-    required bool nullWhenRunning,
+    bool nullWhenDisabled = true,
+    bool nullWhenRunning = true,
     CommandSuccessCallback<R>? onSuccess,
     CommandFailureCallback? onFailure,
   }) =>
