@@ -191,7 +191,7 @@ class Command0<R> extends Command<R> {
   }) async {
     return await _execute(
       () => _action(),
-      reset: false,
+      reset: reset,
       onSuccess: onSuccess,
       onFailure: onFailure,
     );
@@ -211,12 +211,13 @@ class Command1<P, R> extends Command<R> {
   /// {@macro commandExecute}
   FutureOr<Result<R>?> execute(
     P param, {
+    bool reset = false,
     CommandSuccessCallback<R>? onSuccess,
     CommandFailureCallback? onFailure,
   }) async {
     return await _execute(
       () => _action(param),
-      reset: false,
+      reset: reset,
       onSuccess: onSuccess,
       onFailure: onFailure,
     );
