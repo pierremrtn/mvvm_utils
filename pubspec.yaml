@@ -1,5 +1,5 @@
 name: mvvm_utils
-description: A collection of utils to support Flutter's recommended MVVM architecture 
+description: A collection of utils to support Flutter's recommended MVVM architecture
 version: 0.2.0
 repository: https://github.com/pierremrtn/mvvm_utils
 
@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   collection: ^1.18.0
-  async: ^2.12.0
+  async: ^2.11.0
 
 dev_dependencies:
   lints: ^4.0.0
