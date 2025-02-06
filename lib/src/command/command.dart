@@ -156,6 +156,7 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
 
   @override
   void dispose() {
+    _currentAction?.cancel();
     _restrictionController?.removeListener(notifyListeners);
     super.dispose();
   }
