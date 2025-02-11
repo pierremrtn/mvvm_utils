@@ -133,10 +133,10 @@ final username = result.when(
 
 void handleResult(Result<User> result) {
   switch (result) (
-    case Success(value:final user):
-        print('User loaded: ${user.name}'),
+    case Success(value: final user):
+        print('User loaded: ${user.name}');
     case Failure(:final error):
-        print('Failed to load user: $error'),
+        print('Failed to load user: $error');
   );
 }
 
