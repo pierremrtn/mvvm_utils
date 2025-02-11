@@ -240,13 +240,45 @@ final result = await fetchData.execute();
 
 // For Command1
 final result = await updateItem.execute(newItem);
+
+// You can register callback for execution result
+final result = await fetchData.execute(
+    onSuccess: (value) => print('Success!'),
+    onFailure: (error) => print('Error $e'),
+);
 ```
 
 The execute method returns a `Result<R>?` which can be:
 
-- `null` if the command is disabled or already running
+- `null` if the command is disabled, already running, or get reseted before the call compete
 - `Success<R>` if the operation succeeded
 - `Failure` if the operation failed
+
+By default, if the command is already running, calling execute a second time will immediately returns null.
+You can override this behavior by passing `reset: true` to `execute`.
+
+Reset a command will ignore the current operation result, if any.
+
+> 🚨 Dart do not support stopping async function execution. Reseting a command will only ignore the future result. If your async function emit a new state, it will still be executed, even if the command is reset. To avoid this, emit your new state in the onSuccess/onError callback, which are effectively ignored when command is reseted.
+
+```dart
+late final myCommand = command(
+    fetchItems,
+    /// This will not be called if the command is reset before fetchItems complete
+    onSuccess: (items) => _items = items;
+);
+
+myCommand.execute(reset: true);
+myCommand.reset();
+```
+
+Additionally, you Command0 have a convenience method to convert them into `VoidCallback?`. This is useful for flutter event handlers.
+
+```dart
+ElevatedButton(
+    onPressed: myCommand.asNullableCallback()
+)
+```
 
 ### Command Restrictions
 
