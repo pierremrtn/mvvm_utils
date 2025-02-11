@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'command/command.dart';
 
 /// You must call disposeViewModel when the ViewModel is disposed to activate automatic cleanup
-mixin ViewModelBase {
+mixin ViewModelMixin {
   /// Register [dispose] to be call when this [ViewModel] is disposed
   void addDisposer(VoidCallback dispose) {
     _cleanup.add(dispose);
@@ -70,7 +70,7 @@ mixin ViewModelBase {
   }
 }
 
-base class ViewModel extends ChangeNotifier with ViewModelBase {
+base class ViewModel extends ChangeNotifier with ViewModelMixin {
   ViewModel() {
     init();
   }
