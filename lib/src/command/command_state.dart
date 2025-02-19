@@ -66,16 +66,24 @@ extension CommandUtils<T> on CommandStateAccessor<T> {
 
   bool get isInitial => _state is _Initial;
   bool get isRunning => _state is _Running;
-  bool get isFailed => _state is _Failed;
-  bool get isSucceeded => _state is _Succeeded;
-  bool get isCompleted => isFailed || isSucceeded;
+  @Deprecated("Uses isFailure instead")
+  bool get isFailed => isFailure;
+  @Deprecated("Uses isSuccess instead")
+  bool get isSucceeded => isSuccess;
+  bool get isCompleted => isFailure || isSuccess;
+
+  bool get isFailure => _state is _Failed;
+  bool get isSuccess => _state is _Succeeded;
 
   Object? get errorOrNull => switch (_state) {
         _Failed(:final error) => error,
         _ => null,
       };
 
-  T? get resultOrNull => switch (_state) {
+  @Deprecated("Uses valueOrNull instead")
+  T? get resultOrNull => valueOrNull;
+
+  T? get valueOrNull => switch (_state) {
         _Succeeded(:final result) => result,
         _ => null,
       };
