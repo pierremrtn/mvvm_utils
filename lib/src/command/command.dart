@@ -58,7 +58,7 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
     this.onFailure,
     this.onSuccess,
   }) : _restrictionController = restrictionController {
-    _restrictionController?.addListener(notifyListeners);
+    _restrictionController?.addListener(_notify);
   }
 
   final CommandSuccessCallback<R>? onSuccess;
@@ -71,6 +71,7 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
   CommandState<R> _state = CommandState.initial();
   CommandState<R> get state => _state;
 
+  final bool _disposed = false;
   bool get enabled => _restrictionController?.enabled ?? true;
   bool get disabled => !enabled;
 
@@ -91,7 +92,7 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
     CommandSuccessCallback<R>? onSuccess,
     CommandFailureCallback? onFailure,
   }) async {
-    if (_restrictionController?.enabled == false) {
+    if (_disposed || _restrictionController?.enabled == false) {
       return null;
     }
 
@@ -104,7 +105,7 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
     }
 
     _state = CommandState.running();
-    notifyListeners();
+    _notify();
 
     late final Result<R> executionResult;
     try {
@@ -137,7 +138,7 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
           this.onFailure?.call(error);
         },
       );
-      notifyListeners();
+      _notify();
     }
     return executionResult;
   }
@@ -145,19 +146,25 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
   void reset() {
     _currentAction?.cancel();
     _state = CommandState.initial();
-    notifyListeners();
+    _notify();
   }
 
   void cancel() {
     _currentAction?.cancel();
     _state = CommandState.initial();
-    notifyListeners();
+    _notify();
+  }
+
+  void _notify() {
+    if (!_disposed) {
+      notifyListeners();
+    }
   }
 
   @override
   void dispose() {
     _currentAction?.cancel();
-    _restrictionController?.removeListener(notifyListeners);
+    _restrictionController?.removeListener(_notify);
     super.dispose();
   }
 }
