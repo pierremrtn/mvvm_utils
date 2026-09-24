@@ -71,7 +71,7 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
   CommandState<R> _state = CommandState.initial();
   CommandState<R> get state => _state;
 
-  final bool _disposed = false;
+  bool _disposed = false;
   bool get enabled => _restrictionController?.enabled ?? true;
   bool get disabled => !enabled;
 
@@ -128,17 +128,22 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
       executionResult = Failure(e);
       _state = CommandState.failure(e);
     } finally {
-      state.whenOrNull(
-        success: (value) {
-          onSuccess?.call(value);
-          this.onSuccess?.call(value);
-        },
-        failure: (error) {
-          onFailure?.call(error);
-          this.onFailure?.call(error);
-        },
-      );
-      _notify();
+      // An action that completes after dispose() (the owner died while it was
+      // in flight) must not fire the side-effect callbacks nor notify: they
+      // typically touch the disposed owner (emit on a closed cubit, …).
+      if (!_disposed) {
+        state.whenOrNull(
+          success: (value) {
+            onSuccess?.call(value);
+            this.onSuccess?.call(value);
+          },
+          failure: (error) {
+            onFailure?.call(error);
+            this.onFailure?.call(error);
+          },
+        );
+        _notify();
+      }
     }
     return executionResult;
   }
@@ -163,6 +168,10 @@ class Command<R> with ChangeNotifier implements CommandStateAccessor<R> {
 
   @override
   void dispose() {
+    // Was never set before (the field was `final ... = false`): the _disposed
+    // guards in _execute()/_notify() were dead code, so an in-flight action
+    // could still call back into a disposed owner.
+    _disposed = true;
     _currentAction?.cancel();
     _restrictionController?.removeListener(_notify);
     super.dispose();
@@ -204,6 +213,18 @@ class Command0<R> extends Command<R> {
       onFailure: onFailure,
     );
   }
+
+  /// {@macro commandExecute}
+  FutureOr<Result<R>?> call({
+    bool reset = false,
+    CommandSuccessCallback<R>? onSuccess,
+    CommandFailureCallback? onFailure,
+  }) =>
+      execute(
+        reset: reset,
+        onSuccess: onSuccess,
+        onFailure: onFailure,
+      );
 }
 
 class Command1<P, R> extends Command<R> {
@@ -230,4 +251,18 @@ class Command1<P, R> extends Command<R> {
       onFailure: onFailure,
     );
   }
+
+  /// {@macro commandExecute}
+  FutureOr<Result<R>?> call(
+    P param, {
+    bool reset = false,
+    CommandSuccessCallback<R>? onSuccess,
+    CommandFailureCallback? onFailure,
+  }) =>
+      execute(
+        param,
+        reset: reset,
+        onSuccess: onSuccess,
+        onFailure: onFailure,
+      );
 }
